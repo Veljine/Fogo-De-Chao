@@ -1,5 +1,6 @@
 "use server";
 
+// Make sure this import path matches your prisma client file (e.g., db.ts)
 import prisma from "@/src/utils/prisma";
 
 export async function getRecipes() {
@@ -50,7 +51,8 @@ export async function createRecipe(formData: FormData) {
                 imageUrl,
                 ingredients: {
                     create: ingredients.map(({ ingredientId, quantity }) => ({
-                        ingredient: { connect: { id: ingredientId } },
+                        // FIX: Convert ingredientId from String to Int
+                        ingredient: { connect: { id: parseInt(ingredientId, 10) } },
                         quantity
                     }))
                 }
@@ -76,7 +78,9 @@ export async function updateRecipe(id: string, formData: FormData) {
         const name = formData.get("name") as string;
         const description = formData.get("description") as string;
         const imageUrl = formData.get("imageUrl") as string | null;
+
         const ingredients = Array.from(formData.entries())
+            // <-- SYNTAX FIX: Changed 'to' to '=>'
             .filter(([key]) => key.startsWith("ingredient_"))
             .map(([key, value]) => ({
                 ingredientId: value as string,
@@ -93,7 +97,8 @@ export async function updateRecipe(id: string, formData: FormData) {
         }
 
         const recipe = await prisma.menu.update({
-            where: { id },
+            // FIX: Convert the recipe 'id' (which is a string) to an Int
+            where: { id: parseInt(id, 10) },
             data: {
                 name,
                 description,
@@ -101,7 +106,8 @@ export async function updateRecipe(id: string, formData: FormData) {
                 ingredients: {
                     deleteMany: {},
                     create: ingredients.map(({ ingredientId, quantity }) => ({
-                        ingredient: { connect: { id: ingredientId } },
+                        // FIX: Convert ingredientId from String to Int
+                        ingredient: { connect: { id: parseInt(ingredientId, 10) } },
                         quantity
                     }))
                 }
@@ -124,12 +130,15 @@ export async function updateRecipe(id: string, formData: FormData) {
 
 export async function deleteRecipe(id: string) {
     try {
+        // FIX: Convert the recipe 'id' (which is a string) to an Int
+        const recipeIdInt = parseInt(id, 10);
+
         await prisma.recipeIngredient.deleteMany({
-            where: { recipeId: id }
+            where: { recipeId: recipeIdInt }
         });
 
         await prisma.menu.delete({
-            where: { id }
+            where: { id: recipeIdInt }
         });
 
         return { success: true };

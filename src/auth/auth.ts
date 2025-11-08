@@ -3,13 +3,10 @@ import NextAuth from "next-auth"
 import { ZodError } from "zod"
 import Credentials from "next-auth/providers/credentials"
 import { signInSchema } from "@/src/schema/zod"
-import { MongoDBAdapter } from "@auth/mongodb-adapter"
-import client from "@/src/utils/db"
 import bcryptjs from "bcryptjs"
 import { getUserFromDb } from "@/src/utils/user"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-    adapter: MongoDBAdapter(client),
     providers: [
         Credentials({
             credentials: {

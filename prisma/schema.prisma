@@ -4,24 +4,24 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
+  provider = "postgresql" // CHANGED
   url      = env("DATABASE_URL")
-  directUrl = env("DIRECT_DATABASE_URL")
+  // directUrl = env("DIRECT_DATABASE_URL") // REMOVED
 }
 
 model User {
-  id String @id @default(uuid()) @map("_id")
+  id Int @id @default(autoincrement()) // CHANGED
   email String @unique
   password String
 
   createdAt DateTime @default( now() ) @map("created_at")
-  updatedAt DateTime @default( now() ) @map("updated_at")
+  updatedAt DateTime @updatedAt @map("updated_at") // Use @updatedAt for auto-update
 
   @@map("users")
 }
 
 model Ingredient {
-  id String @id @default(uuid()) @map("_id")
+  id Int @id @default(autoincrement()) // CHANGED
   name String
   recipes RecipeIngredient[]
   category Category
@@ -30,9 +30,25 @@ model Ingredient {
   description String?
 
   createdAt DateTime @default( now() ) @map("created_at")
-  updatedAt DateTime @default( now() ) @map("updated_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("ingredients")
+}
+
+// Enums remain the same
+// ...
+
+model Menu {
+  id Int @id @default(autoincrement()) // CHANGED
+  name String
+  description String
+  imageUrl String? @map("image_url")
+  ingredients RecipeIngredient[]
+
+  createdAt DateTime @default( now() ) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("menu")
 }
 
 enum Category {
@@ -52,23 +68,20 @@ enum Unit {
   PIECES
 }
 
-model Menu {
-  id String @id @default(uuid()) @map("_id")
-  name String
-  description String
-  imageUrl String? @map("image_url")
-  ingredients RecipeIngredient[]
-
-  @@map("menu")
-}
-
+// **Important:** In PostgreSQL, you must use a Composite Primary Key
+// on the join table, or keep the Int ID. The explicit join model is fine.
 model RecipeIngredient {
-  id String @id @default(uuid()) @map("_id")
-  recipe Menu @relation(fields: [recipeId], references: [id])
-  recipeId String
-  ingredient Ingredient @relation(fields: [ingredientId], references: [id])
-  ingredientId String
+  id Int @id @default(autoincrement()) // CHANGED: Optional, but keeps the explicit ID field
+
+  recipe Menu @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  recipeId Int // CHANGED: Foreign key type must match primary key type
+
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  ingredientId Int // CHANGED: Foreign key type must match primary key type
+
   quantity Float
 
+  // Add a composite unique index for data integrity: a recipe can only link an ingredient once
+  @@unique([recipeId, ingredientId])
   @@map("recipe_ingredient")
 }
