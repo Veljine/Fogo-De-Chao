@@ -24,7 +24,7 @@ export default async function registerUser(data: { email: string, password: stri
         }
 
         const pwHash = await saltAndHashPassword(password);
-        const user: {id: string, email: string} = await prisma.user.create({
+        const user: {id: number, email: string} = await prisma.user.create({
             data: {
                 email: email,
                 password: pwHash
