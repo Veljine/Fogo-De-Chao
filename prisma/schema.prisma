@@ -35,9 +35,6 @@ model Ingredient {
   @@map("ingredients")
 }
 
-// Enums remain the same
-// ...
-
 model Menu {
   id Int @id @default(autoincrement()) // CHANGED
   name String

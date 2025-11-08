@@ -5,6 +5,7 @@ import { ingredientSchema } from '@/src/schema/zod';
 import { ZodError } from 'zod';
 import { IIngredient } from "@/src/types/ingredient";
 
+// Adjusted IIngredient interface (should have id: number)
 export interface FailureResult {
     success: false;
     error: string | unknown;
@@ -26,7 +27,6 @@ export type DeleteIngredientResult = IngredientSuccessResult | FailureResult;
 
 export async function createIngredient(data: FormData): Promise<CreateIngredientResult> {
     try {
-        // Extract values from FormData properly
         const NewData = {
             name: data.get("name") as string,
             category: data.get("category") as string,
@@ -37,14 +37,15 @@ export async function createIngredient(data: FormData): Promise<CreateIngredient
 
         const validatedNewData = ingredientSchema.parse(NewData);
 
+        // Prisma returns id as number → ensure IIngredient uses number
         const ingredient: IIngredient = await prisma.ingredient.create({
             data: {
                 name: validatedNewData.name,
                 category: validatedNewData.category,
                 unit: validatedNewData.unit,
                 pricePerUnit: validatedNewData.pricePerUnit,
-                description: validatedNewData.description
-            }
+                description: validatedNewData.description,
+            },
         });
 
         return { success: true, ingredient };
@@ -67,10 +68,10 @@ export async function getIngredients(): Promise<GetIngredientsResult> {
     }
 }
 
-export async function deleteIngredient(id: string): Promise<DeleteIngredientResult> {
+export async function deleteIngredient(id: number): Promise<DeleteIngredientResult> {
     try {
         const ingredient: IIngredient = await prisma.ingredient.delete({
-            where: { id }
+            where: { id },
         });
 
         return { success: true, ingredient };

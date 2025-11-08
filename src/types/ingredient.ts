@@ -1,5 +1,5 @@
 export interface IIngredient {
-    id: string;
+    id: number;
     name: string;
     category: string;
     unit: string;
